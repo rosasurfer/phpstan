@@ -18,7 +18,13 @@ class FileExcluder
 	)
 	{
 		$this->analyseExcludes = array_map(function (string $exclude) use ($fileHelper): string {
-			$normalized = $fileHelper->normalizePath($exclude);
+			$trailingDirSeparator = ($len=strLen($exclude)) && in_array($exclude[$len-1], ['\\', '/']);
+
+		    $normalized = $fileHelper->normalizePath($exclude);
+
+		    if ($trailingDirSeparator) {
+		        $normalized .= DIRECTORY_SEPARATOR;
+		    }
 
 			if ($this->isFnmatchPattern($normalized)) {
 				return $normalized;
