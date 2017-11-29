@@ -95,7 +95,7 @@ class PhpDocBlock
 	): self
 	{
 		if (
-			preg_match('#\{@inheritdoc\}#i', $docComment) > 0
+			false // preg_match('#\{@inheritdoc\}#i', $docComment) > 0           // pewa: disable broken @inheritdoc support
 			&& $broker->hasClass($class)
 		) {
 			$classReflection = $broker->getClass($class);
