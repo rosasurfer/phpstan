@@ -4,7 +4,14 @@ namespace PHPStan\Rules\Variables;
 
 use PhpParser\Node;
 use PHPStan\Analyser\Scope;
+use PHPStan\Type\FloatType;
+use PHPStan\Type\IntegerType;
 use PHPStan\Type\NullType;
+use PHPStan\Type\StringType;
+use PHPStan\Type\TrueOrFalseBooleanType;
+use PHPStan\Type\UnionType;
+use PHPStan\Type\Type;
+
 
 class VariableCertaintyInIssetRule implements \PHPStan\Rules\Rule
 {
@@ -54,7 +61,20 @@ class VariableCertaintyInIssetRule implements \PHPStan\Rules\Rule
 			} elseif ($certainty->yes() && !$isSubNode) {
 				$variableType = $scope->getVariableType($var->name);
 				if (!$variableType->accepts(new NullType())) {
-					$messages[] = sprintf('Variable $%s in isset() always exists and is not nullable.', $var->name);
+
+				    // pewa: in PHP5 scalar types are always nullable (strong typing exists only for objects)
+				    $scalarTypes = [
+    				    TrueOrFalseBooleanType::class,
+    				    FloatType::class,
+    				    IntegerType::class,
+    				    StringType::class,
+				    ];
+				    $types = $variableType instanceof UnionType ? $variableType->getTypes() : [$variableType];
+				    $types = array_map(function(Type $type) { return get_class($type); }, $types);
+
+				    if (!array_intersect($scalarTypes, $types)) {
+					   $messages[] = sprintf('Variable $%s in isset() always exists and is not nullable.', $var->name);
+				    }
 				}
 			}
 		}
